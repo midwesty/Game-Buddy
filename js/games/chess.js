@@ -9,6 +9,10 @@ function inBounds(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
 function enemy(piece, target) { return target && piece && target.color !== piece.color; }
 function algebraic(r, c) { return String.fromCharCode(97 + c) + (8 - r); }
 
+function playerForTurn(state, turn = state.turn) {
+  return state.players?.find((p) => (turn === 'white' ? p.id === 'p1' : p.id === 'p2')) || null;
+}
+
 export function createInitialState({ mode, players, wager = 0 }) {
   const board = Array.from({ length: 8 }, () => Array(8).fill(null));
   ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'].forEach((t, c) => {
@@ -43,14 +47,16 @@ function rawMoves(state, r, c, forAttack = false) {
   if (!piece) return [];
   const moves = [];
   const addRay = (dr, dc) => {
-    let nr = r + dr, nc = c + dc;
+    let nr = r + dr;
+    let nc = c + dc;
     while (inBounds(nr, nc)) {
       if (!board[nr][nc]) moves.push([nr, nc]);
       else {
         if (enemy(piece, board[nr][nc])) moves.push([nr, nc]);
         break;
       }
-      nr += dr; nc += dc;
+      nr += dr;
+      nc += dc;
     }
   };
   switch (piece.type) {
@@ -62,7 +68,8 @@ function rawMoves(state, r, c, forAttack = false) {
         if (r === startRow && !board[r + dir][c] && !board[r + dir * 2][c]) moves.push([r + dir * 2, c]);
       }
       [-1, 1].forEach((dc) => {
-        const nr = r + dir, nc = c + dc;
+        const nr = r + dir;
+        const nc = c + dc;
         if (!inBounds(nr, nc)) return;
         if (forAttack || enemy(piece, board[nr][nc])) moves.push([nr, nc]);
       });
@@ -71,19 +78,35 @@ function rawMoves(state, r, c, forAttack = false) {
       }
       break;
     }
-    case 'r': [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc]) => addRay(dr,dc)); break;
-    case 'b': [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc]) => addRay(dr,dc)); break;
-    case 'q': [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc]) => addRay(dr,dc)); break;
-    case 'n': [[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]].forEach(([dr,dc]) => { const nr=r+dr,nc=c+dc; if (inBounds(nr,nc) && (!board[nr][nc] || enemy(piece,board[nr][nc]))) moves.push([nr,nc]); }); break;
+    case 'r':
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dr, dc]) => addRay(dr, dc));
+      break;
+    case 'b':
+      [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([dr, dc]) => addRay(dr, dc));
+      break;
+    case 'q':
+      [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([dr, dc]) => addRay(dr, dc));
+      break;
+    case 'n':
+      [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]].forEach(([dr, dc]) => {
+        const nr = r + dr;
+        const nc = c + dc;
+        if (inBounds(nr, nc) && (!board[nr][nc] || enemy(piece, board[nr][nc]))) moves.push([nr, nc]);
+      });
+      break;
     case 'k': {
-      [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc]) => { const nr=r+dr,nc=c+dc; if (inBounds(nr,nc) && (!board[nr][nc] || enemy(piece,board[nr][nc]))) moves.push([nr,nc]); });
+      [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([dr, dc]) => {
+        const nr = r + dr;
+        const nc = c + dc;
+        if (inBounds(nr, nc) && (!board[nr][nc] || enemy(piece, board[nr][nc]))) moves.push([nr, nc]);
+      });
       if (!forAttack && !piece.moved) {
         const row = piece.color === 'white' ? 7 : 0;
         if (r === row && c === 4) {
           const rookK = board[row][7];
-          if (rookK?.type === 'r' && !rookK.moved && !board[row][5] && !board[row][6]) moves.push([row,6,'castleK']);
+          if (rookK?.type === 'r' && !rookK.moved && !board[row][5] && !board[row][6]) moves.push([row, 6, 'castleK']);
           const rookQ = board[row][0];
-          if (rookQ?.type === 'r' && !rookQ.moved && !board[row][1] && !board[row][2] && !board[row][3]) moves.push([row,2,'castleQ']);
+          if (rookQ?.type === 'r' && !rookQ.moved && !board[row][1] && !board[row][2] && !board[row][3]) moves.push([row, 2, 'castleQ']);
         }
       }
       break;
@@ -134,74 +157,87 @@ function legalMovesFor(state, r, c) {
   if (!piece || piece.color !== state.turn) return [];
   let moves = rawMoves(state, r, c);
   if (piece.type === 'k') {
-    moves = moves.filter((m) => {
-      if (m[2] === 'castleK') return !isSquareAttacked(state, r, 4, piece.color === 'white' ? 'black' : 'white') && !isSquareAttacked(state, r, 5, piece.color === 'white' ? 'black' : 'white') && !isSquareAttacked(state, r, 6, piece.color === 'white' ? 'black' : 'white');
-      if (m[2] === 'castleQ') return !isSquareAttacked(state, r, 4, piece.color === 'white' ? 'black' : 'white') && !isSquareAttacked(state, r, 3, piece.color === 'white' ? 'black' : 'white') && !isSquareAttacked(state, r, 2, piece.color === 'white' ? 'black' : 'white');
+    const enemyColor = piece.color === 'white' ? 'black' : 'white';
+    moves = moves.filter((move) => {
+      if (move[2] === 'castleK') {
+        return !isSquareAttacked(state, r, 4, enemyColor) && !isSquareAttacked(state, r, 5, enemyColor) && !isSquareAttacked(state, r, 6, enemyColor);
+      }
+      if (move[2] === 'castleQ') {
+        return !isSquareAttacked(state, r, 4, enemyColor) && !isSquareAttacked(state, r, 3, enemyColor) && !isSquareAttacked(state, r, 2, enemyColor);
+      }
       return true;
     });
   }
   return moves.filter((move) => {
-    const next = applyMoveUnsafe(state, [r, c], move);
-    const [kr, kc] = findKing(next.board, piece.color);
-    return !isSquareAttacked(next, kr, kc, piece.color === 'white' ? 'black' : 'white');
+    const test = applyMoveUnsafe(state, [r, c], move);
+    const kingPos = findKing(test.board, piece.color);
+    return kingPos && !isSquareAttacked(test, kingPos[0], kingPos[1], piece.color === 'white' ? 'black' : 'white');
   });
 }
 
 function allLegalMoves(state, color = state.turn) {
-  const originalTurn = state.turn;
-  state.turn = color;
-  const all = [];
-  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) if (state.board[r][c]?.color === color) {
-    legalMovesFor(state, r, c).forEach((m) => all.push({ from: [r,c], move: m }));
+  const list = [];
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const p = state.board[r][c];
+    if (!p || p.color !== color) continue;
+    const oldTurn = state.turn;
+    state.turn = color;
+    const moves = legalMovesFor(state, r, c);
+    state.turn = oldTurn;
+    moves.forEach((m) => list.push({ from: [r, c], move: m }));
   }
-  state.turn = originalTurn;
-  return all;
+  return list;
 }
 
-function checkGameEnd(state) {
-  const nextColor = state.turn;
-  const all = allLegalMoves(state, nextColor);
-  const king = findKing(state.board, nextColor);
-  const inCheck = isSquareAttacked(state, king[0], king[1], nextColor === 'white' ? 'black' : 'white');
-  if (all.length === 0) {
-    return inCheck ? { result: nextColor === 'white' ? 'Black wins by checkmate' : 'White wins by checkmate', winner: nextColor === 'white' ? 'black' : 'white' } : { result: 'Draw by stalemate', winner: 'draw' };
+function checkGameEnd(next) {
+  const nextColor = next.turn;
+  const legal = allLegalMoves(clone(next), nextColor);
+  if (!legal.length) {
+    const king = findKing(next.board, nextColor);
+    const inCheck = king && isSquareAttacked(next, king[0], king[1], nextColor === 'white' ? 'black' : 'white');
+    return inCheck
+      ? { result: nextColor === 'white' ? 'Black wins by checkmate' : 'White wins by checkmate', winner: nextColor === 'white' ? 'black' : 'white' }
+      : { result: 'Draw by stalemate', winner: 'draw' };
   }
   return null;
 }
 
 export function handleAction(state, action) {
   if (state.result) return state;
-  if (action.type === 'select') {
-    const { row, col } = action;
-    const piece = state.board[row][col];
-    if (state.selected && state.legalMoves.some(([r,c]) => r === row && c === col)) {
-      const next = applyMoveUnsafe(state, state.selected, state.legalMoves.find(([r,c]) => r === row && c === col));
-      next.turn = state.turn === 'white' ? 'black' : 'white';
-      next.selected = null;
-      next.legalMoves = [];
-      next.history = [...state.history, `${state.turn} ${algebraic(...state.selected)}→${algebraic(row,col)}`];
-      next.status = `${next.turn[0].toUpperCase() + next.turn.slice(1)} to move`;
-      const end = checkGameEnd(next);
-      if (end) { next.result = end.result; next.winner = end.winner; }
-      return next;
+  if (action.type !== 'select') return state;
+  const { row, col } = action;
+  const piece = state.board[row][col];
+  if (state.selected && state.legalMoves.some(([r, c]) => r === row && c === col)) {
+    const next = applyMoveUnsafe(state, state.selected, state.legalMoves.find(([r, c]) => r === row && c === col));
+    next.turn = state.turn === 'white' ? 'black' : 'white';
+    next.selected = null;
+    next.legalMoves = [];
+    next.history = [...state.history, `${state.turn} ${algebraic(...state.selected)}→${algebraic(row, col)}`];
+    next.status = `${next.turn[0].toUpperCase() + next.turn.slice(1)} to move`;
+    const end = checkGameEnd(next);
+    if (end) {
+      next.result = end.result;
+      next.winner = end.winner;
     }
-    if (piece?.color === state.turn) {
-      return { ...state, selected: [row,col], legalMoves: legalMovesFor(state, row, col) };
-    }
-    return { ...state, selected: null, legalMoves: [] };
+    return next;
   }
-  return state;
+  if (piece?.color === state.turn) {
+    return { ...state, selected: [row, col], legalMoves: legalMovesFor(state, row, col) };
+  }
+  return { ...state, selected: null, legalMoves: [] };
 }
 
 export function getAiMove(state) {
+  const seat = playerForTurn(state);
+  if (!seat?.isBot || state.result) return null;
   const moves = allLegalMoves(clone(state), state.turn);
   if (!moves.length) return null;
   const scored = moves.map((entry) => {
     const target = state.board[entry.move[0]][entry.move[1]];
-    const captureScore = target ? { p:1,n:3,b:3,r:5,q:9,k:20 }[target.type] : 0;
+    const captureScore = target ? { p: 1, n: 3, b: 3, r: 5, q: 9, k: 20 }[target.type] : 0;
     const centerScore = 3.5 - (Math.abs(3.5 - entry.move[0]) + Math.abs(3.5 - entry.move[1])) / 2;
     return { ...entry, score: captureScore * 10 + centerScore + Math.random() };
-  }).sort((a,b)=>b.score-a.score);
+  }).sort((a, b) => b.score - a.score);
   return { type: 'select', row: scored[0].from[0], col: scored[0].from[1], followup: { row: scored[0].move[0], col: scored[0].move[1] } };
 }
 
@@ -210,27 +246,41 @@ export function render(state, ctx) {
   root.className = 'game-shell fade-in';
   const info = document.createElement('div');
   info.className = 'info-strip';
-  info.innerHTML = `<div class="chip">Turn: ${state.turn}</div><div class="chip">${state.result || state.status}</div>`;
-  const boardWrap = document.createElement('div'); boardWrap.className = 'center-board';
-  const board = document.createElement('div'); board.className = 'board-grid arcade-spark'; board.style.gridTemplateColumns = 'repeat(8, 1fr)';
-  for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+  info.innerHTML = `<div class="chip">Turn: ${state.turn}</div><div class="chip">Active: ${playerForTurn(state)?.name || state.turn}</div><div class="chip">${state.result || state.status}</div>`;
+  const boardWrap = document.createElement('div');
+  boardWrap.className = 'center-board';
+  const board = document.createElement('div');
+  board.className = 'board-grid arcade-spark';
+  board.style.gridTemplateColumns = 'repeat(8, 1fr)';
+
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
     const cell = document.createElement('button');
-    cell.className = `board-cell ${(r+c)%2 ? 'dark' : 'light'} ${state.selected?.[0]===r && state.selected?.[1]===c ? 'selected' : ''}`;
-    if (state.legalMoves.some(([mr,mc]) => mr===r && mc===c)) cell.classList.add('highlight');
-    cell.dataset.tip = `${algebraic(r,c)}${state.board[r][c] ? ` · ${state.board[r][c].color} ${state.board[r][c].type}` : ''}`;
+    cell.className = `board-cell ${(r + c) % 2 ? 'dark' : 'light'} ${state.selected?.[0] === r && state.selected?.[1] === c ? 'selected' : ''}`;
+    if (state.legalMoves.some(([mr, mc]) => mr === r && mc === c)) cell.classList.add('highlight');
+    cell.dataset.tip = `${algebraic(r, c)}${state.board[r][c] ? ` · ${state.board[r][c].color} ${state.board[r][c].type}` : ''}`;
     const piece = state.board[r][c];
     cell.innerHTML = piece ? `<span class="piece">${PIECES[piece.color][piece.type]}</span>` : '';
     cell.onclick = () => {
-      let next = handleAction(state, { type:'select', row:r, col:c });
+      const next = handleAction(state, { type: 'select', row: r, col: c });
       if (ctx.onStateChange) ctx.onStateChange(next, true);
-      const aiSeat = next.players?.find((p) => p.isBot && ((next.turn === 'black' && p.id === 'p2') || (next.turn === 'white' && p.id === 'p1')));
-      if (ctx.autoBotTurn && aiSeat) ctx.autoBotTurn();
+      if (ctx.autoBotTurn && next && !next.result) ctx.autoBotTurn();
     };
     board.append(cell);
   }
+
   boardWrap.append(board);
   root.append(info, boardWrap);
   ctx.setInfo(`<div class="match-banner">${state.result || state.status}</div><div class="mini-text">Standard chess rules included: castling, en passant, promotion, checkmate, stalemate.</div>`);
-  ctx.setActions(`<div class="mini-text">Tap a piece, then tap a highlighted square. In solo mode, Buddy Bot plays black.</div>`);
+  ctx.setActions(`
+    <div class="btn-row wrap">
+      <button id="chessNew" class="action-btn primary" data-tip="Start a fresh chess game with the same mode and wager.">New Game</button>
+      <button id="chessEnd" class="action-btn danger" data-tip="Clear the chess board and return to the main room.">End Game</button>
+    </div>
+    <div class="mini-text">Tap a piece, then tap a highlighted square. In solo mode, Buddy Bot plays black.</div>
+  `);
+  queueMicrotask(() => {
+    document.getElementById('chessNew')?.addEventListener('click', () => ctx.restartMatch?.());
+    document.getElementById('chessEnd')?.addEventListener('click', () => ctx.endMatch?.(null, 'Cleared the chess board.'));
+  });
   return root;
 }
