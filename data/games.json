@@ -1,0 +1,56 @@
+[
+  {
+    "id": "chess",
+    "name": "Chess",
+    "description": "Full standard chess with local, solo, and share-code play.",
+    "modes": ["local", "share", "solo"],
+    "supportsWager": true,
+    "supportsBots": true,
+    "players": {"min": 2, "max": 2}
+  },
+  {
+    "id": "checkers",
+    "name": "Checkers",
+    "description": "American checkers with forced captures and kings.",
+    "modes": ["local", "share", "solo"],
+    "supportsWager": true,
+    "supportsBots": true,
+    "players": {"min": 2, "max": 2}
+  },
+  {
+    "id": "blackjack",
+    "name": "Blackjack",
+    "description": "Take on the dealer with classic hit, stand, split, and double controls.",
+    "modes": ["local", "share", "solo"],
+    "supportsWager": true,
+    "supportsBots": false,
+    "players": {"min": 1, "max": 4}
+  },
+  {
+    "id": "pitch",
+    "name": "Pitch",
+    "description": "4-player partnership Pitch. Bid, name trump, and chase High, Low, Jack, and Game.",
+    "modes": ["local", "share", "solo"],
+    "supportsWager": true,
+    "supportsBots": true,
+    "players": {"min": 4, "max": 4}
+  },
+  {
+    "id": "solitaire",
+    "name": "Solitaire",
+    "description": "Klondike draw-3 solitaire for solo practice or casual play.",
+    "modes": ["solo", "local"],
+    "supportsWager": false,
+    "supportsBots": false,
+    "players": {"min": 1, "max": 1}
+  },
+  {
+    "id": "holdem",
+    "name": "Texas Hold'em",
+    "description": "Cash-game style Hold'em with up to 6 seats, blinds, raises, all-ins, and side pots.",
+    "modes": ["local", "share", "solo"],
+    "supportsWager": true,
+    "supportsBots": true,
+    "players": {"min": 2, "max": 6}
+  }
+]

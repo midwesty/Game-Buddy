@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Game Buddy</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div id="app" class="theme-retro">
+    <header class="topbar glassy">
+      <button id="menuToggle" class="icon-btn" data-tip="Open or close the main menu">☰</button>
+      <div class="brand-wrap">
+        <h1 class="brand">Game Buddy</h1>
+        <div id="statusLine" class="status-line">Loading your game room…</div>
+      </div>
+      <div class="top-actions">
+        <button id="quickSaveBtn" class="icon-btn" data-tip="Save profile and match state right now">💾</button>
+        <button id="tipsToggleBtn" class="icon-btn" data-tip="Turn guided tips on or off">💡</button>
+      </div>
+    </header>
+
+    <aside id="sidePanel" class="side-panel open glassy">
+      <section class="panel-block">
+        <h2>Profiles</h2>
+        <div id="profileSummary" class="profile-summary"></div>
+        <div class="btn-row wrap">
+          <button id="openProfilesBtn" class="action-btn">Profiles</button>
+          <button id="guestModeBtn" class="action-btn">Guest Mode</button>
+        </div>
+      </section>
+
+      <section class="panel-block">
+        <h2>Play</h2>
+        <label class="field-label">Choose Game</label>
+        <select id="gameSelect" class="field-input"></select>
+        <label class="field-label">Game Mode</label>
+        <select id="modeSelect" class="field-input">
+          <option value="local">Local / Pass & Play</option>
+          <option value="share">Share-Code Multiplayer</option>
+          <option value="solo">Solo / Practice</option>
+        </select>
+        <label class="field-label">Wager</label>
+        <input id="wagerInput" class="field-input" type="number" min="0" step="5" value="0" />
+        <div class="btn-row wrap">
+          <button id="newMatchBtn" class="action-btn primary">Start Match</button>
+          <button id="resumeMatchBtn" class="action-btn">Resume Saved</button>
+        </div>
+      </section>
+
+      <section class="panel-block">
+        <h2>Multiplayer</h2>
+        <div class="btn-row wrap">
+          <button id="exportCodeBtn" class="action-btn">Create Match Code</button>
+          <button id="importCodeBtn" class="action-btn">Join / Resume by Code</button>
+        </div>
+        <textarea id="shareCodeBox" class="field-input tall" placeholder="Your match code appears here. Paste a code here to resume a remote turn."></textarea>
+      </section>
+
+      <section class="panel-block">
+        <h2>Builder</h2>
+        <div class="btn-row wrap">
+          <button id="openBuilderBtn" class="action-btn">Custom Tabletop</button>
+          <button id="loadBuilderBtn" class="action-btn">Load Saved Table</button>
+        </div>
+      </section>
+
+      <section class="panel-block">
+        <h2>Options</h2>
+        <label class="field-label">Music Track</label>
+        <select id="musicTrackSelect" class="field-input"></select>
+        <label class="field-label">Dashboard Theme</label>
+        <select id="dashboardThemeSelect" class="field-input"></select>
+        <label class="field-label">Room Theme</label>
+        <select id="roomThemeSelect" class="field-input"></select>
+        <div class="toggle-grid">
+          <label><input id="musicEnabledToggle" type="checkbox" checked /> Music</label>
+          <label><input id="sfxEnabledToggle" type="checkbox" checked /> SFX</label>
+          <label><input id="tipsEnabledToggle" type="checkbox" checked /> Tips</label>
+          <label><input id="flairEnabledToggle" type="checkbox" checked /> Flair</label>
+        </div>
+      </section>
+
+      <section class="panel-block">
+        <h2>Admin</h2>
+        <div class="btn-row wrap">
+          <button id="openAdminBtn" class="action-btn warn">Cheats</button>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main-stage">
+      <section id="gameRoom" class="game-room glow-idle">
+        <div id="tableBackdrop" class="table-backdrop"></div>
+        <div id="roomTitle" class="room-title">1970s Retro Felt Room</div>
+        <div id="playArea" class="play-area" aria-live="polite"></div>
+      </section>
+
+      <section class="bottom-hud glassy">
+        <div id="gameInfo" class="hud-card">
+          <h3>Match</h3>
+          <div id="gameInfoContent">Choose a game to begin.</div>
+        </div>
+        <div id="actionsPanel" class="hud-card">
+          <h3>Actions</h3>
+          <div id="actionsContent">Game controls will appear here.</div>
+        </div>
+        <div id="logPanel" class="hud-card">
+          <h3>Log</h3>
+          <div id="logContent" class="log-content"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="tooltip" class="tooltip hidden"></div>
+
+  <dialog id="profilesModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Profiles</h2>
+        <button class="close-modal" data-close="profilesModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="two-col">
+          <div>
+            <h3>Create Profile</h3>
+            <label class="field-label">Display Name</label>
+            <input id="profileNameInput" class="field-input" maxlength="20" placeholder="Player name" />
+            <label class="field-label">Avatar</label>
+            <div id="avatarPicker" class="avatar-picker"></div>
+            <button id="createProfileBtn" class="action-btn primary">Create Profile</button>
+          </div>
+          <div>
+            <h3>Existing Profiles</h3>
+            <div id="profilesList" class="profiles-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="adminModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Admin / Cheats</h2>
+        <button class="close-modal" data-close="adminModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="btn-row wrap">
+          <button id="cheatAdd500Btn" class="action-btn warn">+500 Buddy Bucks</button>
+          <button id="cheatRevealBtn" class="action-btn warn">Reveal Hands / Info</button>
+          <button id="cheatAutoplayBtn" class="action-btn warn">AI Autoplay Turn</button>
+          <button id="cheatUndoBtn" class="action-btn warn">Undo</button>
+          <button id="cheatRedoBtn" class="action-btn warn">Redo</button>
+          <button id="cheatResetMatchBtn" class="action-btn warn">Reset Current Match</button>
+          <button id="cheatClearSavesBtn" class="action-btn danger">Clear Saved Match</button>
+        </div>
+        <p class="help-copy">Use these for testing. Winnings and losses can still affect your active profile, so add Buddy Bucks back if you need a reset.</p>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="builderModal" class="modal builder-modal">
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <h2>Custom Tabletop Builder</h2>
+        <button class="close-modal" data-close="builderModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="builder-layout">
+          <div class="builder-controls">
+            <label class="field-label">Table Name</label>
+            <input id="builderTitleInput" class="field-input" maxlength="40" value="My Custom Table" />
+            <label class="field-label">Rules / Notes</label>
+            <textarea id="builderRulesInput" class="field-input tall"></textarea>
+            <label class="field-label">Players</label>
+            <div class="two-small-inputs">
+              <input id="builderMinPlayers" class="field-input" type="number" min="1" max="12" value="2" />
+              <input id="builderMaxPlayers" class="field-input" type="number" min="1" max="12" value="4" />
+            </div>
+            <label class="field-label">Board Preset</label>
+            <select id="builderBoardSelect" class="field-input"></select>
+            <label class="field-label">Built-in Pieces</label>
+            <div id="builderPiecePalette" class="piece-palette"></div>
+            <label class="field-label">Upload Custom Piece</label>
+            <input id="builderUploadInput" class="field-input" type="file" accept="image/*" />
+            <div class="btn-row wrap">
+              <button id="builderSaveBtn" class="action-btn primary">Save Table</button>
+              <button id="builderExportBtn" class="action-btn">Export Table</button>
+              <button id="builderRenderBtn" class="action-btn">Open In Play Area</button>
+            </div>
+          </div>
+          <div class="builder-stage-wrap">
+            <div id="builderStage" class="builder-stage"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="messageModal" class="modal">
+    <div class="modal-card slim">
+      <div class="modal-head">
+        <h2 id="messageTitle">Notice</h2>
+        <button class="close-modal" data-close="messageModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="messageBody"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "dashboardThemes": [
+    {
+      "id": "retro-dashboard",
+      "name": "Retro Felt Dashboard",
+      "bodyClass": "theme-retro",
+      "backgroundImage": "assets/img/themes/ui-retro-felt.jpg"
+    }
+  ],
+  "roomThemes": [
+    {
+      "id": "retro-room",
+      "name": "1970s Retro Felt Room",
+      "roomClass": "room-retro",
+      "backgroundImage": "assets/img/themes/room-retro-felt.jpg"
+    }
+  ]
+}

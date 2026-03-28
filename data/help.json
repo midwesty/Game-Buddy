@@ -1,0 +1,6 @@
+{
+  "welcome": "Welcome to Game Buddy. Pick a profile, choose a game, and start a match. Hover on desktop or long-press on mobile to see what buttons do.",
+  "shareCode": "Share-code multiplayer is asynchronous. After your turn, create a new code and send it to the next player.",
+  "wagers": "Optional wagers use Buddy Bucks. Standard casino-style games use them by default.",
+  "builder": "The custom tabletop builder lets you save board setups, place built-in pieces, and upload custom piece art. Rules text is saved with your custom table."
+}

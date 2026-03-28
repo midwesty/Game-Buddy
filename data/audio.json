@@ -1,0 +1,18 @@
+{
+  "music": [
+    {"id": "track1", "name": "Lounge Loop 01", "path": "assets/audio/music/lounge-loop-01.mp3"},
+    {"id": "track2", "name": "Lounge Loop 02", "path": "assets/audio/music/lounge-loop-02.mp3"},
+    {"id": "track3", "name": "Lounge Loop 03", "path": "assets/audio/music/lounge-loop-03.mp3"},
+    {"id": "track4", "name": "Lounge Loop 04", "path": "assets/audio/music/lounge-loop-04.mp3"},
+    {"id": "track5", "name": "Lounge Loop 05", "path": "assets/audio/music/lounge-loop-05.mp3"}
+  ],
+  "sfx": {
+    "click": "assets/audio/sfx/click.mp3",
+    "move": "assets/audio/sfx/move.mp3",
+    "card": "assets/audio/sfx/card-flip.mp3",
+    "win": "assets/audio/sfx/win.mp3",
+    "lose": "assets/audio/sfx/lose.mp3",
+    "chips": "assets/audio/sfx/chips.mp3",
+    "alert": "assets/audio/sfx/alert.mp3"
+  }
+}

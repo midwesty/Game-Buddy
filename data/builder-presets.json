@@ -1,0 +1,17 @@
+{
+  "boards": [
+    {"id": "felt-grid", "name": "Felt Grid", "background": "linear-gradient(180deg, #1d7058, #125141)"},
+    {"id": "wood-table", "name": "Wood Table", "background": "linear-gradient(180deg, #8c613f, #5e3d27)"},
+    {"id": "space-arcade", "name": "Arcade Nebula", "background": "radial-gradient(circle at top, #6b50ad, #24173e 60%, #160e22)"}
+  ],
+  "pieces": [
+    {"id": "pawn", "label": "Pawn", "emoji": "♟️"},
+    {"id": "knight", "label": "Knight", "emoji": "♞"},
+    {"id": "heart", "label": "Heart", "emoji": "❤️"},
+    {"id": "star", "label": "Star", "emoji": "⭐"},
+    {"id": "coin", "label": "Coin", "emoji": "🪙"},
+    {"id": "gem", "label": "Gem", "emoji": "💎"},
+    {"id": "meeple", "label": "Meeple", "emoji": "🧍"},
+    {"id": "tower", "label": "Tower", "emoji": "🗼"}
+  ]
+}
